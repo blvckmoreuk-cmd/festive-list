@@ -30,11 +30,34 @@
     }
   </script>
   <style>
-    body { background-color: #FAF7F2; color: #2D3748; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: linear-gradient(180deg, #FAF7F2 0%, #F3EDE3 100%);
+      color: #2D3748;
+      -webkit-tap-highlight-color: transparent;
+    }
     .touch-target { min-height: 44px; min-width: 44px; }
+    .bunting {
+      height: 6px;
+      background: repeating-linear-gradient(90deg, #C83737 0 10px, #FFFFFF 10px 20px, #2E5A44 20px 30px, #D4A359 30px 40px);
+    }
+    .gift-card {
+      background: white;
+      border: 1px solid #E8E1D7;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .price-tag {
+      background: #FDF8EF;
+      color: #D4A359;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body class="min-h-screen font-sans">
+  <div class="bunting"></div>
   <main class="max-w-xl mx-auto px-4 py-6">
     <header class="flex items-center justify-between mb-6 pb-4 border-b border-parchment-border">
       <div>
@@ -50,7 +73,7 @@
 
     <div id="group-tabs" class="flex gap-2 mb-4 overflow-x-auto pb-1"></div>
 
-    <div class="flex bg-gray-200/60 p-1 rounded-xl mb-6">
+    <div class="flex bg-white/70 p-1 rounded-xl mb-6 border border-parchment-border">
       <button id="tab-feed" onclick="switchTab('feed')" class="flex-1 py-2.5 rounded-lg text-center bg-white text-berry font-semibold shadow-sm">Gift Feed</button>
       <button id="tab-my-list" onclick="switchTab('my-list')" class="flex-1 py-2.5 rounded-lg text-center text-gray-600">My List</button>
       <button id="tab-buying" onclick="switchTab('buying')" class="flex-1 py-2.5 rounded-lg text-center text-gray-600">I'm Buying</button>
@@ -87,7 +110,7 @@
     <div class="bg-white rounded-2xl max-w-sm w-full p-5">
       <h3 class="font-serif text-lg mb-3">Add a Gift</h3>
       <input id="gift-title" type="text" placeholder="What do you want?" class="w-full border rounded-xl px-3 py-2 mb-2">
-      <input id="gift-price" type="text" placeholder="Price (optional)" class="w-full border rounded-xl px-3 py-2 mb-2">
+      <input id="gift-price" type="text" placeholder="Price e.g. 25" class="w-full border rounded-xl px-3 py-2 mb-2">
       <input id="gift-link" type="url" placeholder="Link (optional)" class="w-full border rounded-xl px-3 py-2 mb-4">
       <div class="flex gap-2">
         <button type="button" onclick="closeAddItemModal()" class="flex-1 py-2.5 border rounded-xl">Cancel</button>
@@ -97,6 +120,13 @@
   </div>
 
   <script>
+    function formatPrice(p) {
+      if (!p) return '';
+      const clean = String(p).replace(/[^£\d.,]/g, '');
+      if (!clean) return '';
+      return clean.startsWith('£') ? clean : '£' + clean;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const urlGroupCode = params.get('group');
 
@@ -115,10 +145,7 @@
     async function loadShared(code) {
       try {
         const res = await fetch('/api/family?code=' + encodeURIComponent(code));
-        if (res.ok) {
-          const data = await res.json();
-          return data;
-        }
+        if (res.ok) return await res.json();
       } catch (e) {}
       return null;
     }
@@ -130,9 +157,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-      } catch (e) {
-        console.warn('Save failed');
-      }
+      } catch (e) {}
     }
 
     async function init() {
@@ -177,9 +202,7 @@
       localStorage.setItem('festive_current_group', currentGroupId);
 
       const g = groups.find(g => g.id === currentGroupId);
-      if (g && g.code) {
-        saveShared(g.code, { users, items });
-      }
+      if (g && g.code) saveShared(g.code, { users, items });
     }
 
     function renderGroupTabs() {
@@ -222,18 +245,19 @@
       const container = document.getElementById('view-feed');
       const groupItems = items.filter(i => i.groupId === currentGroupId && i.ownerId !== currentUserId);
       if (groupItems.length === 0) {
-        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">No gifts in this group yet.</div>';
+        container.innerHTML = '<div class="gift-card p-8 text-center text-gray-400">No gifts in this group yet.</div>';
         return;
       }
       container.innerHTML = groupItems.map(item => {
         const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone' };
         const claimed = item.claimedBy === currentUserId;
+        const price = formatPrice(item.price);
         return `
-          <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
+          <div class="gift-card p-4 flex justify-between items-center">
             <div>
               <div class="text-xs text-pine font-medium">${owner.name}</div>
               <div class="font-medium ${claimed ? 'line-through text-gray-400' : ''}">${item.title}</div>
-              <div class="text-xs text-gray-500 mt-1">${item.price || ''}</div>
+              ${price ? `<div class="price-tag mt-1 inline-block">${price}</div>` : ''}
             </div>
             <button onclick="toggleClaim('${item.id}')" class="text-xs px-3 py-2 rounded-xl ${claimed ? 'bg-pine text-white' : 'border border-berry text-berry'}">
               ${claimed ? "You're Buying" : 'Claim'}
@@ -247,28 +271,35 @@
       const container = document.getElementById('my-items-container');
       const mine = items.filter(i => i.ownerId === currentUserId && i.groupId === currentGroupId);
       if (mine.length === 0) {
-        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">Nothing on your list yet.</div>';
+        container.innerHTML = '<div class="gift-card p-8 text-center text-gray-400">Nothing on your list yet.</div>';
         return;
       }
-      container.innerHTML = mine.map(item => `
-        <div class="bg-white p-4 rounded-2xl border flex justify-between">
-          <div><div class="font-medium">${item.title}</div><div class="text-xs text-gray-500">${item.price || ''}</div></div>
-          <button onclick="deleteItem('${item.id}')" class="text-gray-300">✕</button>
-        </div>
-      `).join('');
+      container.innerHTML = mine.map(item => {
+        const price = formatPrice(item.price);
+        return `
+          <div class="gift-card p-4 flex justify-between items-center">
+            <div>
+              <div class="font-medium">${item.title}</div>
+              ${price ? `<div class="price-tag mt-1 inline-block">${price}</div>` : ''}
+            </div>
+            <button onclick="deleteItem('${item.id}')" class="text-gray-300 hover:text-berry">✕</button>
+          </div>
+        `;
+      }).join('');
     }
 
     function renderBuying() {
       const container = document.getElementById('buying-items-container');
       const mine = items.filter(i => i.claimedBy === currentUserId);
       if (mine.length === 0) {
-        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">You haven\'t claimed any gifts.</div>';
+        container.innerHTML = '<div class="gift-card p-8 text-center text-gray-400">You haven\'t claimed any gifts.</div>';
         return;
       }
       container.innerHTML = mine.map(item => {
         const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone' };
         const group = groups.find(g => g.id === item.groupId);
-        return '<div class="bg-white p-4 rounded-2xl border"><div class="text-xs text-berry">' + (group?.name || '') + ' · ' + owner.name + '</div><div class="font-medium">' + item.title + '</div></div>';
+        const price = formatPrice(item.price);
+        return `<div class="gift-card p-4"><div class="text-xs text-berry">${group?.name || ''} · ${owner.name}</div><div class="font-medium">${item.title}</div>${price ? `<div class="price-tag mt-1 inline-block">${price}</div>` : ''}</div>`;
       }).join('');
     }
 
