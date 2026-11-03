@@ -6,13 +6,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="FestiveList">
-  <title>FestiveList - Family Christmas Wishlist</title>
-  
+  <title>FestiveList</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-
   <script>
     tailwind.config = {
       theme: {
@@ -31,577 +29,270 @@
       }
     }
   </script>
-
   <style>
-    body {
-      background-color: #FAF7F2;
-      color: #2D3748;
-      -webkit-tap-highlight-color: transparent;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+    body { background-color: #FAF7F2; color: #2D3748; -webkit-tap-highlight-color: transparent; }
     .touch-target { min-height: 44px; min-width: 44px; }
-    .bunting-container {
-      background: repeating-linear-gradient(
-        -45deg,
-        #C83737,
-        #C83737 12px,
-        #FFFFFF 12px,
-        #FFFFFF 24px
-      );
-      height: 8px;
-      width: 100%;
-    }
-    .bunting-flags {
-      display: flex;
-      justify-content: space-around;
-      margin-top: -1px;
-      overflow: hidden;
-    }
-    .flag {
-      width: 0;
-      height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-top: 16px solid #C83737;
-    }
-    .flag:nth-child(even) { border-top-color: #2E5A44; }
-    .flag:nth-child(3n) { border-top-color: #D4A359; }
   </style>
 </head>
-<body class="min-h-screen font-sans flex flex-col justify-between">
+<body class="min-h-screen font-sans">
+  <main class="max-w-xl mx-auto px-4 py-6">
+    <header class="flex items-center justify-between mb-6 pb-4 border-b border-parchment-border">
+      <div>
+        <h1 class="font-serif text-2xl font-bold text-berry">🎄 FestiveList</h1>
+        <p id="greeting-text" class="text-sm text-gray-500 mt-0.5">Merry Christmas!</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="profile-btn" onclick="openProfileModal()" class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-parchment-border shadow-sm touch-target">
+          <div id="current-user-avatar" class="w-7 h-7 rounded-full bg-berry text-white flex items-center justify-center text-xs"></div>
+          <span id="current-user-name" class="text-sm font-medium">You</span>
+        </button>
+        <button onclick="shareCurrentGroup()" class="p-2.5 rounded-full bg-white border border-parchment-border text-gray-600 touch-target">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+        </button>
+      </div>
+    </header>
 
-  <div>
-    <!-- Candy Cane Bunting Banner -->
-    <div class="bunting-container"></div>
-    <div class="bunting-flags px-4">
-      <div class="flag"></div><div class="flag"></div><div class="flag"></div>
-      <div class="flag"></div><div class="flag"></div><div class="flag"></div>
-      <div class="flag"></div><div class="flag"></div><div class="flag"></div>
-      <div class="flag"></div><div class="flag"></div><div class="flag"></div>
+    <div id="group-tabs" class="flex gap-2 mb-4 overflow-x-auto pb-1"></div>
+
+    <div class="flex bg-gray-200/60 p-1 rounded-xl mb-6">
+      <button id="tab-feed" onclick="switchTab('feed')" class="flex-1 py-2.5 rounded-lg text-center bg-white text-berry font-semibold shadow-sm">Gift Feed</button>
+      <button id="tab-my-list" onclick="switchTab('my-list')" class="flex-1 py-2.5 rounded-lg text-center text-gray-600">My List</button>
+      <button id="tab-buying" onclick="switchTab('buying')" class="flex-1 py-2.5 rounded-lg text-center text-gray-600">I'm Buying</button>
     </div>
 
-    <!-- Main Container -->
-    <main class="max-w-xl mx-auto px-4 py-6">
-      <!-- Header Bar -->
-      <header class="flex items-center justify-between mb-8 pb-4 border-b border-parchment-border">
-        <div>
-          <h1 class="font-serif text-2xl md:text-3xl font-bold text-berry flex items-center gap-2">
-            🎄 FestiveList
-          </h1>
-          <p id="greeting-text" class="text-sm text-gray-500 mt-0.5">Merry Christmas!</p>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Profile Switcher Button -->
-          <button id="profile-btn" onclick="openProfileModal()" class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-parchment-border shadow-sm touch-target hover:bg-gray-50 transition">
-            <div id="current-user-avatar" class="w-7 h-7 rounded-full bg-berry text-white flex items-center justify-center font-semibold text-xs overflow-hidden"></div>
-            <span id="current-user-name" class="text-sm font-medium text-gray-700">Loading...</span>
-          </button>
-
-          <!-- Share Button -->
-          <button onclick="shareApp()" class="p-2.5 rounded-full bg-white border border-parchment-border text-gray-600 hover:text-berry hover:bg-gray-50 touch-target shadow-sm transition" title="Share with family">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-          </button>
-        </div>
-      </header>
-
-      <!-- Navigation Tabs -->
-      <div class="flex bg-gray-200/60 p-1 rounded-xl mb-6">
-        <button id="tab-my-list" onclick="switchTab('my-list')" class="flex-1 py-2.5 rounded-lg text-center transition touch-target bg-white text-berry font-semibold shadow-sm">My Wishlist</button>
-        <button id="tab-family" onclick="switchTab('family')" class="flex-1 py-2.5 rounded-lg text-center transition touch-target text-gray-600 hover:text-gray-900">Family Wishlists</button>
-        <button id="tab-buying" onclick="switchTab('buying')" class="flex-1 py-2.5 rounded-lg text-center transition touch-target text-gray-600 hover:text-gray-900">I'm Buying</button>
+    <section id="view-feed" class="space-y-3"></section>
+    <section id="view-my-list" class="hidden space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="font-serif text-lg">My Requests</h2>
+        <button onclick="openAddItemModal()" class="bg-berry text-white px-4 py-2 rounded-xl text-sm">+ Add Gift</button>
       </div>
+      <div id="my-items-container" class="space-y-3"></div>
+    </section>
+    <section id="view-buying" class="hidden space-y-3">
+      <h2 class="font-serif text-lg">Gifts I'm Buying</h2>
+      <div id="buying-items-container" class="space-y-3"></div>
+    </section>
+  </main>
 
-      <!-- MY LIST VIEW -->
-      <section id="view-my-list" class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-serif text-xl font-semibold text-gray-900">My Christmas Requests</h2>
-          <button onclick="openAddItemModal()" class="bg-berry text-white px-4 py-2 rounded-xl text-sm font-medium touch-target shadow-sm hover:bg-berry-dark transition">+ Add Gift</button>
-        </div>
-        <div id="my-items-container" class="space-y-3"></div>
-      </section>
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-full text-sm opacity-0 pointer-events-none transition-opacity z-[100]"></div>
 
-      <!-- FAMILY VIEW -->
-      <section id="view-family" class="hidden space-y-4">
-        <div>
-          <h2 class="font-serif text-xl font-semibold text-gray-900 mb-3">Family Wishlists</h2>
-          <div id="family-member-tabs" class="flex gap-2 overflow-x-auto pb-2"></div>
-        </div>
-        <div id="family-items-container" class="space-y-3"></div>
-      </section>
-
-      <!-- BUYING VIEW -->
-      <section id="view-buying" class="hidden space-y-4">
-        <h2 class="font-serif text-xl font-semibold text-gray-900">Gifts I'm Buying</h2>
-        <div id="buying-items-container" class="space-y-3"></div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Footer -->
-  <footer class="text-center py-6 text-xs text-gray-400">
-    FestiveList • Surprise-Protected Family Wishlists<br>
-    <a href="#" onclick="showAppInstallGuide(); return false;" class="text-berry hover:underline">How to add to iPhone Home Screen</a>
-  </footer>
-
-  <!-- Toast -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-full text-sm opacity-0 pointer-events-none transition-opacity z-50">
-    <span id="toast-message">Action completed</span>
-  </div>
-
-  <!-- Add User Modal -->
-  <div id="add-user-modal" class="fixed inset-0 bg-gray-900/40 z-50 hidden flex items-center justify-center p-4">
+  <div id="new-group-modal" class="fixed inset-0 bg-gray-900/40 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h3 id="add-user-title" class="font-serif text-lg font-semibold">Add Family Member</h3>
-        <button id="add-user-close-btn" onclick="closeAddUserModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      <h3 class="font-serif text-lg mb-3">New Group</h3>
+      <input id="new-group-name" type="text" placeholder="e.g. Friends, Work, Cousins" class="w-full border rounded-xl px-3 py-2 mb-4">
+      <div class="flex gap-2">
+        <button type="button" onclick="closeNewGroupModal()" class="flex-1 py-2.5 border rounded-xl">Cancel</button>
+        <button type="button" onclick="createGroup()" class="flex-1 bg-berry text-white py-2.5 rounded-xl">Create</button>
       </div>
-      <form onsubmit="saveNewUser(event)">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-        <input id="new-user-name" type="text" placeholder="e.g. Sarah" class="w-full border border-parchment-border rounded-xl px-3 py-2 mb-4 focus:outline-none focus:border-berry" required>
-        
-        <label class="block text-sm font-medium text-gray-700 mb-2">Choose Avatar / Emoji</label>
-        <div id="avatar-picker-grid" class="grid grid-cols-6 gap-2 mb-4"></div>
-        
-        <div class="flex gap-2">
-          <button type="button" id="add-user-cancel-btn" onclick="closeAddUserModal()" class="flex-1 py-2.5 rounded-xl border border-parchment-border text-gray-600">Cancel</button>
-          <button type="submit" class="flex-1 bg-berry text-white py-2.5 rounded-xl font-medium">Save Member</button>
-        </div>
-      </form>
     </div>
   </div>
 
-  <!-- Profile Modal -->
-  <div id="profile-modal" class="fixed inset-0 bg-gray-900/40 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-serif text-lg font-semibold">Switch Profile</h3>
-        <button onclick="closeProfileModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-      </div>
-      <div id="profile-list-container" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
-      <button onclick="closeProfileModal(); openAddUserModal();" class="w-full py-2.5 rounded-xl border border-berry text-berry font-medium">+ Add Family Member</button>
-    </div>
-  </div>
-
-  <!-- Add Item Modal -->
   <div id="add-item-modal" class="fixed inset-0 bg-gray-900/40 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-serif text-lg font-semibold">Add a Gift</h3>
-        <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      <h3 class="font-serif text-lg mb-3">Add a Gift</h3>
+      <input id="gift-title" type="text" placeholder="What do you want?" class="w-full border rounded-xl px-3 py-2 mb-2">
+      <input id="gift-price" type="text" placeholder="Price (optional)" class="w-full border rounded-xl px-3 py-2 mb-2">
+      <input id="gift-link" type="url" placeholder="Link (optional)" class="w-full border rounded-xl px-3 py-2 mb-4">
+      <div class="flex gap-2">
+        <button type="button" onclick="closeAddItemModal()" class="flex-1 py-2.5 border rounded-xl">Cancel</button>
+        <button type="button" onclick="saveNewItem()" class="flex-1 bg-berry text-white py-2.5 rounded-xl font-medium">Add Gift</button>
       </div>
-      <form onsubmit="saveNewItem(event)">
-        <label class="block text-sm font-medium text-gray-700 mb-1">What do you want?</label>
-        <input id="gift-title-input" type="text" placeholder="e.g. Lego set, book, headphones..." class="w-full border border-parchment-border rounded-xl px-3 py-2 mb-3 focus:outline-none focus:border-berry" required>
-        
-        <label class="block text-sm font-medium text-gray-700 mb-1">Price (optional)</label>
-        <input id="gift-price-input" type="text" placeholder="e.g. £25" class="w-full border border-parchment-border rounded-xl px-3 py-2 mb-3 focus:outline-none focus:border-berry">
-        
-        <label class="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
-        <input id="gift-link-input" type="url" placeholder="https://..." class="w-full border border-parchment-border rounded-xl px-3 py-2 mb-4 focus:outline-none focus:border-berry">
-        
-        <div class="flex gap-2">
-          <button type="button" onclick="closeAddItemModal()" class="flex-1 py-2.5 rounded-xl border border-parchment-border text-gray-600">Cancel</button>
-          <button type="submit" class="flex-1 bg-berry text-white py-2.5 rounded-xl font-medium">Add to List</button>
-        </div>
-      </form>
     </div>
   </div>
 
   <script>
-    const AVATAR_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    let groups = JSON.parse(localStorage.getItem('festive_groups') || '[]');
+    let currentGroupId = localStorage.getItem('festive_current_group') || null;
+    let users = JSON.parse(localStorage.getItem('festive_users') || '[]');
+    let items = JSON.parse(localStorage.getItem('festive_items') || '[]');
+    let currentUserId = localStorage.getItem('festive_current_user') || 'me';
 
-    const params = new URLSearchParams(window.location.search);
-    let familyCode = params.get('family') || localStorage.getItem('festive_family_code') || null;
-
-    let users = [];
-    let items = [];
-    let currentUserId = localStorage.getItem('festive_current_user') || null;
-    let selectedFamilyFilter = 'all';
-    let selectedAvatar = AVATAR_OPTIONS[0];
-    let usingShared = !!familyCode;
-
-    async function loadData() {
-      if (familyCode) {
-        try {
-          const res = await fetch(`/api/family?code=${encodeURIComponent(familyCode)}`);
-          if (res.ok) {
-            const data = await res.json();
-            users = data.users || [];
-            items = data.items || [];
-          }
-        } catch (e) {
-          console.warn('Could not load shared data, falling back to local');
-          users = JSON.parse(localStorage.getItem('festive_users')) || [];
-          items = JSON.parse(localStorage.getItem('festive_items')) || [];
-        }
-      } else {
-        users = JSON.parse(localStorage.getItem('festive_users')) || [];
-        items = JSON.parse(localStorage.getItem('festive_items')) || [];
-      }
+    if (users.length === 0) {
+      users = [{ id: 'me', name: 'You', avatar: 'Y' }];
+      localStorage.setItem('festive_users', JSON.stringify(users));
+    }
+    if (groups.length === 0) {
+      groups = [{ id: 'family', name: 'Family', code: 'demo-family' }];
+      localStorage.setItem('festive_groups', JSON.stringify(groups));
+      currentGroupId = 'family';
     }
 
-    async function init() {
-      await loadData();
+    function save() {
+      localStorage.setItem('festive_groups', JSON.stringify(groups));
+      localStorage.setItem('festive_users', JSON.stringify(users));
+      localStorage.setItem('festive_items', JSON.stringify(items));
+      localStorage.setItem('festive_current_group', currentGroupId);
+    }
 
-      if (users.length === 0) {
-        openAddUserModal(true); // First-time user setup
+    function renderGroupTabs() {
+      const container = document.getElementById('group-tabs');
+      container.innerHTML = groups.map(g => `
+        <button onclick="selectGroup('${g.id}')" class="px-4 py-2 rounded-full text-sm whitespace-nowrap ${g.id === currentGroupId ? 'bg-berry text-white' : 'bg-white border text-gray-700'}">${g.name}</button>
+      `).join('') + `
+        <button onclick="openNewGroupModal()" class="px-4 py-2 rounded-full text-sm bg-white border text-gray-500">+ New</button>
+      `;
+    }
+
+    function selectGroup(id) {
+      currentGroupId = id;
+      save();
+      renderAll();
+    }
+
+    function openNewGroupModal() {
+      document.getElementById('new-group-name').value = '';
+      document.getElementById('new-group-modal').classList.remove('hidden');
+    }
+    function closeNewGroupModal() {
+      document.getElementById('new-group-modal').classList.add('hidden');
+    }
+    function createGroup() {
+      const name = document.getElementById('new-group-name').value.trim();
+      if (!name) return;
+      const id = Date.now().toString();
+      groups.push({ id, name, code: Math.random().toString(36).slice(2, 8) });
+      currentGroupId = id;
+      save();
+      closeNewGroupModal();
+      renderAll();
+      showToast('Group "' + name + '" created');
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('view-feed');
+      const groupItems = items.filter(i => i.groupId === currentGroupId && i.ownerId !== currentUserId);
+      if (groupItems.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">No gifts in this group yet.</div>';
         return;
       }
-
-      if (!currentUserId || !users.some(u => u.id === currentUserId)) {
-        currentUserId = users[0].id;
-        localStorage.setItem('festive_current_user', currentUserId);
-      }
-
-      renderHeader();
-      renderMyList();
-      renderFamilyList();
-      renderBuyingList();
-      updateShareButton();
+      container.innerHTML = groupItems.map(item => {
+        const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone', avatar: '?' };
+        const claimed = item.claimedBy === currentUserId;
+        return `
+          <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
+            <div>
+              <div class="text-xs text-pine font-medium">${owner.name}</div>
+              <div class="font-medium ${claimed ? 'line-through text-gray-400' : ''}">${item.title}</div>
+              <div class="text-xs text-gray-500 mt-1">${item.price || ''}</div>
+            </div>
+            <button onclick="toggleClaim('${item.id}')" class="text-xs px-3 py-2 rounded-xl ${claimed ? 'bg-pine text-white' : 'border border-berry text-berry'}">
+              ${claimed ? "You're Buying" : 'Claim'}
+            </button>
+          </div>
+        `;
+      }).join('');
     }
-
-    function renderHeader() {
-      const user = users.find(u => u.id === currentUserId) || users[0];
-      if (!user) return;
-      document.getElementById('current-user-name').innerText = user.name;
-      document.getElementById('greeting-text').innerText = `Merry Christmas, ${user.name}!`;
-      document.getElementById('current-user-avatar').innerText = user.avatar || user.name[0];
-    }
-
-    function switchTab(tab) {
-      ['my-list', 'family', 'buying'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add('hidden');
-        const btn = document.getElementById(`tab-${t}`);
-        btn.className = "flex-1 py-2.5 rounded-lg text-center transition touch-target text-gray-600 hover:text-gray-900";
-      });
-
-      document.getElementById(`view-${tab}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-${tab}`);
-      activeBtn.className = "flex-1 py-2.5 rounded-lg text-center transition touch-target bg-white text-berry font-semibold shadow-sm";
-    }
-
-    /* ================= WISHLIST RENDERERS ================= */
 
     function renderMyList() {
       const container = document.getElementById('my-items-container');
-      const myItems = items.filter(i => i.ownerId === currentUserId);
-
-      if (myItems.length === 0) {
-        container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center border border-parchment-border text-gray-400">Your list is empty. Tap "+ Add Gift" to start!</div>`;
+      const mine = items.filter(i => i.ownerId === currentUserId && i.groupId === currentGroupId);
+      if (mine.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">Nothing on your list yet.</div>';
         return;
       }
-
-      container.innerHTML = myItems.map(item => `
-        <div class="bg-white p-4 rounded-2xl border border-parchment-border shadow-sm flex items-center justify-between">
-          <div>
-            <h3 class="font-medium text-gray-900">${escapeHtml(item.title)}</h3>
-            <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
-              ${item.price ? `<span class="bg-parchment px-2 py-0.5 rounded text-gray-600">${escapeHtml(item.price)}</span>` : ''}
-              ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-berry hover:underline flex items-center gap-0.5">Link ↗</a>` : ''}
-            </div>
-          </div>
-          <button onclick="deleteItem('${item.id}')" class="text-gray-300 hover:text-berry p-2 touch-target">✕</button>
+      container.innerHTML = mine.map(item => `
+        <div class="bg-white p-4 rounded-2xl border flex justify-between">
+          <div><div class="font-medium">${item.title}</div><div class="text-xs text-gray-500">${item.price || ''}</div></div>
+          <button onclick="deleteItem('${item.id}')" class="text-gray-300">✕</button>
         </div>
       `).join('');
     }
 
-    function renderFamilyList() {
-      const tabsContainer = document.getElementById('family-member-tabs');
-      const itemsContainer = document.getElementById('family-items-container');
-      const familyMembers = users.filter(u => u.id !== currentUserId);
-
-      tabsContainer.innerHTML = `
-        <button onclick="filterFamily('all')" class="px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap touch-target transition ${selectedFamilyFilter === 'all' ? 'bg-pine text-white' : 'bg-white text-gray-600 border border-parchment-border'}">All Family</button>
-        ${familyMembers.map(m => `
-          <button onclick="filterFamily('${m.id}')" class="px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap touch-target transition flex items-center gap-1.5 ${selectedFamilyFilter === m.id ? 'bg-pine text-white' : 'bg-white text-gray-600 border border-parchment-border'}">
-            <span>${m.avatar}</span> ${m.name}
-          </button>
-        `).join('')}
-      `;
-
-      let familyItems = items.filter(i => i.ownerId !== currentUserId);
-      if (selectedFamilyFilter !== 'all') {
-        familyItems = familyItems.filter(i => i.ownerId === selectedFamilyFilter);
-      }
-
-      if (familyItems.length === 0) {
-        itemsContainer.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center border border-parchment-border text-gray-400">No items requested yet by family members.</div>`;
-        return;
-      }
-
-      itemsContainer.innerHTML = familyItems.map(item => {
-        const owner = users.find(u => u.id === item.ownerId);
-        const isClaimedByMe = item.claimedBy === currentUserId;
-        const isClaimedByOther = item.claimedBy && !isClaimedByMe;
-        const claimer = isClaimedByOther ? users.find(u => u.id === item.claimedBy) : null;
-
-        return `
-          <div class="bg-white p-4 rounded-2xl border border-parchment-border shadow-sm flex items-center justify-between">
-            <div>
-              <div class="flex items-center gap-1.5 mb-1">
-                <span class="text-xs bg-pine-light text-pine-dark px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                  <span>${owner ? owner.avatar : '👤'}</span> ${owner ? owner.name : 'Unknown'}
-                </span>
-              </div>
-              <h3 class="font-medium text-gray-900 ${isClaimedByOther ? 'line-through text-gray-400' : ''}">${escapeHtml(item.title)}</h3>
-              <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                ${item.price ? `<span class="bg-parchment px-2 py-0.5 rounded">${escapeHtml(item.price)}</span>` : ''}
-                ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-berry hover:underline">Link ↗</a>` : ''}
-              </div>
-            </div>
-
-            <div>
-              ${isClaimedByMe ? `
-                <button onclick="toggleClaim('${item.id}')" class="bg-pine text-white text-xs px-3 py-2 rounded-xl font-medium touch-target shadow-sm">✓ You're Buying</button>
-              ` : isClaimedByOther ? `
-                <span class="text-xs text-gray-400 bg-gray-100 px-2.5 py-1.5 rounded-xl border border-gray-200">Bought by ${claimer ? claimer.name : 'Someone'}</span>
-              ` : `
-                <button onclick="toggleClaim('${item.id}')" class="bg-white border border-berry text-berry hover:bg-berry-light text-xs px-3 py-2 rounded-xl font-medium touch-target transition">Claim Gift</button>
-              `}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderBuyingList() {
+    function renderBuying() {
       const container = document.getElementById('buying-items-container');
-      const myClaimedItems = items.filter(i => i.claimedBy === currentUserId);
-
-      if (myClaimedItems.length === 0) {
-        container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center border border-parchment-border text-gray-400">You haven't claimed any gifts yet. Browse family lists to pick what you're buying!</div>`;
+      const mine = items.filter(i => i.claimedBy === currentUserId);
+      if (mine.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center border text-gray-400">You haven\'t claimed any gifts.</div>';
         return;
       }
-
-      container.innerHTML = myClaimedItems.map(item => {
-        const owner = users.find(u => u.id === item.ownerId);
-        return `
-          <div class="bg-white p-4 rounded-2xl border border-parchment-border shadow-sm flex items-center justify-between">
-            <div>
-              <span class="text-xs text-berry font-medium">For ${owner ? owner.name : 'Family Member'}</span>
-              <h3 class="font-medium text-gray-900">${escapeHtml(item.title)}</h3>
-              <p class="text-xs text-gray-500 mt-0.5">${item.price || ''}</p>
-            </div>
-            <button onclick="toggleClaim('${item.id}')" class="text-xs text-gray-400 hover:text-berry underline p-2 touch-target">Unclaim</button>
-          </div>
-        `;
+      container.innerHTML = mine.map(item => {
+        const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone' };
+        const group = groups.find(g => g.id === item.groupId);
+        return '<div class="bg-white p-4 rounded-2xl border"><div class="text-xs text-berry">' + (group?.name || '') + ' · ' + owner.name + '</div><div class="font-medium">' + item.title + '</div></div>';
       }).join('');
     }
 
-    /* ================= MODAL HANDLERS ================= */
-
-    function openProfileModal() {
-      const container = document.getElementById('profile-list-container');
-      container.innerHTML = users.map(u => `
-        <button onclick="selectProfile('${u.id}')" class="w-full p-2.5 rounded-xl border flex items-center justify-between transition touch-target ${u.id === currentUserId ? 'border-berry bg-berry-light text-berry font-bold' : 'border-parchment-border hover:bg-gray-50 text-gray-700'}">
-          <div class="flex items-center gap-2">
-            <span class="text-base">${u.avatar}</span>
-            <span>${escapeHtml(u.name)}</span>
-          </div>
-          ${u.id === currentUserId ? '<span class="text-xs bg-berry text-white px-2 py-0.5 rounded-full">Active</span>' : ''}
-        </button>
-      `).join('');
-
-      document.getElementById('profile-modal').classList.remove('hidden');
+    function renderAll() {
+      renderGroupTabs();
+      renderFeed();
+      renderMyList();
+      renderBuying();
+      const g = groups.find(g => g.id === currentGroupId);
+      document.getElementById('greeting-text').innerText = g ? g.name : 'Merry Christmas!';
     }
 
-    function closeProfileModal() {
-      document.getElementById('profile-modal').classList.add('hidden');
-    }
-
-    function selectProfile(id) {
-      currentUserId = id;
-      localStorage.setItem('festive_current_user', currentUserId);
-      closeProfileModal();
-      init();
-      showToast(`Switched profile!`);
-    }
-
-    function openAddUserModal(isFirstUser = false) {
-      document.getElementById('new-user-name').value = '';
-      selectedAvatar = AVATAR_OPTIONS[0];
-
-      // Dynamic Title
-      document.getElementById('add-user-title').innerText = isFirstUser ? "Welcome to FestiveList!" : "Add Family Member";
-
-      // Hide close/cancel if forcing first user
-      document.getElementById('add-user-close-btn').style.display = isFirstUser ? 'none' : 'block';
-      document.getElementById('add-user-cancel-btn').style.display = isFirstUser ? 'none' : 'block';
-
-      renderAvatarPicker();
-      document.getElementById('add-user-modal').classList.remove('hidden');
-    }
-
-    function closeAddUserModal() {
-      document.getElementById('add-user-modal').classList.add('hidden');
-    }
-
-    function renderAvatarPicker() {
-      const grid = document.getElementById('avatar-picker-grid');
-      grid.innerHTML = AVATAR_OPTIONS.map(a => `
-        <button type="button" onclick="selectAvatar('${a}')" class="w-10 h-10 rounded-xl border text-lg flex items-center justify-center transition ${selectedAvatar === a ? 'border-berry bg-berry-light ring-2 ring-berry/20' : 'border-parchment-border hover:bg-gray-50'}">
-          ${a}
-        </button>
-      `).join('');
-    }
-
-    function selectAvatar(emoji) {
-      selectedAvatar = emoji;
-      renderAvatarPicker();
-    }
-
-    function saveNewUser(e) {
-      e.preventDefault();
-      const nameInput = document.getElementById('new-user-name').value.trim();
-      if (!nameInput) return;
-
-      const newUser = {
-        id: Date.now().toString(),
-        name: nameInput,
-        avatar: selectedAvatar
-      };
-
-      users.push(newUser);
-      currentUserId = newUser.id;
-      saveData();
-      closeAddUserModal();
-      closeProfileModal();
-      init();
-      showToast(`Welcome, ${newUser.name}!`);
+    function switchTab(tab) {
+      ['feed','my-list','buying'].forEach(t => {
+        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('tab-' + t).className = t === tab
+          ? 'flex-1 py-2.5 rounded-lg text-center bg-white text-berry font-semibold shadow-sm'
+          : 'flex-1 py-2.5 rounded-lg text-center text-gray-600';
+      });
     }
 
     function openAddItemModal() {
-      document.getElementById('gift-title-input').value = '';
-      document.getElementById('gift-price-input').value = '';
-      document.getElementById('gift-link-input').value = '';
+      document.getElementById('gift-title').value = '';
+      document.getElementById('gift-price').value = '';
+      document.getElementById('gift-link').value = '';
       document.getElementById('add-item-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('gift-title').focus(), 50);
     }
-
-    function closeAddItemModal() {
-      document.getElementById('add-item-modal').classList.add('hidden');
-    }
-
-    function saveNewItem(e) {
-      e.preventDefault();
-      const title = document.getElementById('gift-title-input').value.trim();
-      if (!title) return;
-
-      const newItem = {
+    function closeAddItemModal() { document.getElementById('add-item-modal').classList.add('hidden'); }
+    function saveNewItem() {
+      const title = document.getElementById('gift-title').value.trim();
+      if (!title) {
+        showToast('Please enter a gift name');
+        return;
+      }
+      items.push({
         id: Date.now().toString(),
-        title: title,
-        price: document.getElementById('gift-price-input').value.trim() || null,
-        link: document.getElementById('gift-link-input').value.trim() || null,
+        title,
+        price: document.getElementById('gift-price').value.trim(),
+        link: document.getElementById('gift-link').value.trim(),
         ownerId: currentUserId,
+        groupId: currentGroupId,
         claimedBy: null
-      };
-
-      items.push(newItem);
-      saveData();
+      });
+      document.getElementById('gift-title').value = '';
+      document.getElementById('gift-price').value = '';
+      document.getElementById('gift-link').value = '';
+      save();
       closeAddItemModal();
-      renderMyList();
-      showToast('Gift added!');
+      renderAll();
+      switchTab('my-list');
+      showToast('Gift added to your list');
     }
 
     function toggleClaim(id) {
-      items = items.map(i => {
-        if (i.id === id) {
-          return { ...i, claimedBy: i.claimedBy === currentUserId ? null : currentUserId };
-        }
-        return i;
-      });
-      saveData();
-      renderFamilyList();
-      renderBuyingList();
-      showToast('Gift updated!');
-    }
-
-    function filterFamily(id) {
-      selectedFamilyFilter = id;
-      renderFamilyList();
+      items = items.map(i => i.id === id ? { ...i, claimedBy: i.claimedBy === currentUserId ? null : currentUserId } : i);
+      save();
+      renderAll();
     }
 
     function deleteItem(id) {
       items = items.filter(i => i.id !== id);
-      saveData();
-      renderMyList();
-      showToast('Item removed');
+      save();
+      renderAll();
     }
 
-    function shareApp() {
-      if (!familyCode) {
-        createSharedList();
-      }
-      const shareUrl = window.location.href;
-      if (navigator.share) {
-        navigator.share({
-          title: 'FestiveList',
-          text: 'Join our family Christmas Wishlist on FestiveList!',
-          url: shareUrl
-        }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(shareUrl);
-        showToast('Shared list link copied! Send it to your family.');
-      }
-    }
-
-    function showAppInstallGuide() {
-      alert("To add FestiveList to your iPhone Home Screen:\n\n1. Open this link in Safari\n2. Tap the Share button (square with up arrow)\n3. Scroll down and tap 'Add to Home Screen'");
-    }
-
-    async function saveData() {
-      if (familyCode) {
-        try {
-          await fetch(`/api/family?code=${encodeURIComponent(familyCode)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ users, items })
-          });
-        } catch (e) {
-          console.warn('Failed to save to server');
-        }
-      }
-      // Always keep a local backup
-      localStorage.setItem('festive_items', JSON.stringify(items));
-      localStorage.setItem('festive_users', JSON.stringify(users));
-      if (familyCode) localStorage.setItem('festive_family_code', familyCode);
-    }
-
-    function generateFamilyCode() {
-      return Math.random().toString(36).slice(2, 8);
-    }
-
-    function createSharedList() {
-      if (!familyCode) {
-        familyCode = generateFamilyCode();
-        const url = new URL(window.location);
-        url.searchParams.set('family', familyCode);
-        window.history.replaceState({}, '', url);
-        localStorage.setItem('festive_family_code', familyCode);
-      }
-      updateShareButton();
-      showToast('Shared list created! Copy the link to invite family.');
-    }
-
-    function updateShareButton() {
-      // Could enhance the existing share button if present
+    function shareCurrentGroup() {
+      const g = groups.find(g => g.id === currentGroupId);
+      if (!g) return;
+      const url = window.location.origin + window.location.pathname + '?group=' + g.code;
+      navigator.clipboard?.writeText(url);
+      showToast('Link for "' + g.name + '" copied');
     }
 
     function showToast(msg) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-message').innerText = msg;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2000);
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.remove('opacity-0','pointer-events-none');
+      setTimeout(() => t.classList.add('opacity-0','pointer-events-none'), 2000);
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str || '';
-      return div.innerHTML;
-    }
+    function openProfileModal() { showToast('Profile switcher coming soon'); }
 
-    // Run on boot
-    init();
+    renderAll();
   </script>
 </body>
 </html>
