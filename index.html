@@ -42,11 +42,7 @@
         <p id="greeting-text" class="text-sm text-gray-500 mt-0.5">Merry Christmas!</p>
       </div>
       <div class="flex items-center gap-2">
-        <button id="profile-btn" onclick="openProfileModal()" class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-parchment-border shadow-sm touch-target">
-          <div id="current-user-avatar" class="w-7 h-7 rounded-full bg-berry text-white flex items-center justify-center text-xs"></div>
-          <span id="current-user-name" class="text-sm font-medium">You</span>
-        </button>
-        <button onclick="shareCurrentGroup()" class="p-2.5 rounded-full bg-white border border-parchment-border text-gray-600 touch-target">
+        <button onclick="shareCurrentGroup()" class="p-2.5 rounded-full bg-white border border-parchment-border text-gray-600 touch-target" title="Share this group">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
         </button>
       </div>
@@ -101,20 +97,77 @@
   </div>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const urlGroupCode = params.get('group');
+
     let groups = JSON.parse(localStorage.getItem('festive_groups') || '[]');
     let currentGroupId = localStorage.getItem('festive_current_group') || null;
     let users = JSON.parse(localStorage.getItem('festive_users') || '[]');
     let items = JSON.parse(localStorage.getItem('festive_items') || '[]');
-    let currentUserId = localStorage.getItem('festive_current_user') || 'me';
+    let currentUserId = localStorage.getItem('festive_current_user') || ('user_' + Date.now());
 
     if (users.length === 0) {
-      users = [{ id: 'me', name: 'You', avatar: 'Y' }];
+      users = [{ id: currentUserId, name: 'You', avatar: 'Y' }];
       localStorage.setItem('festive_users', JSON.stringify(users));
+      localStorage.setItem('festive_current_user', currentUserId);
     }
-    if (groups.length === 0) {
-      groups = [{ id: 'family', name: 'Family', code: 'demo-family' }];
-      localStorage.setItem('festive_groups', JSON.stringify(groups));
-      currentGroupId = 'family';
+
+    async function loadShared(code) {
+      try {
+        const res = await fetch('/api/family?code=' + encodeURIComponent(code));
+        if (res.ok) {
+          const data = await res.json();
+          return data;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    async function saveShared(code, data) {
+      try {
+        await fetch('/api/family?code=' + encodeURIComponent(code), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.warn('Save failed');
+      }
+    }
+
+    async function init() {
+      if (urlGroupCode) {
+        let g = groups.find(g => g.code === urlGroupCode);
+        if (!g) {
+          const data = await loadShared(urlGroupCode);
+          g = { id: Date.now().toString(), name: 'Shared Group', code: urlGroupCode };
+          groups.push(g);
+          if (data) {
+            if (data.users) users = data.users;
+            if (data.items) items = data.items;
+          }
+        }
+        currentGroupId = g.id;
+      }
+
+      if (groups.length === 0) {
+        groups = [{ id: 'family', name: 'Family', code: Math.random().toString(36).slice(2, 8) }];
+        currentGroupId = 'family';
+      }
+      if (!currentGroupId) currentGroupId = groups[0].id;
+
+      await syncCurrent();
+      renderAll();
+    }
+
+    async function syncCurrent() {
+      const g = groups.find(g => g.id === currentGroupId);
+      if (!g || !g.code) return;
+      const data = await loadShared(g.code);
+      if (data) {
+        if (data.users && data.users.length) users = data.users;
+        if (data.items) items = data.items;
+      }
     }
 
     function save() {
@@ -122,6 +175,11 @@
       localStorage.setItem('festive_users', JSON.stringify(users));
       localStorage.setItem('festive_items', JSON.stringify(items));
       localStorage.setItem('festive_current_group', currentGroupId);
+
+      const g = groups.find(g => g.id === currentGroupId);
+      if (g && g.code) {
+        saveShared(g.code, { users, items });
+      }
     }
 
     function renderGroupTabs() {
@@ -133,8 +191,9 @@
       `;
     }
 
-    function selectGroup(id) {
+    async function selectGroup(id) {
       currentGroupId = id;
+      await syncCurrent();
       save();
       renderAll();
     }
@@ -150,7 +209,8 @@
       const name = document.getElementById('new-group-name').value.trim();
       if (!name) return;
       const id = Date.now().toString();
-      groups.push({ id, name, code: Math.random().toString(36).slice(2, 8) });
+      const code = Math.random().toString(36).slice(2, 8);
+      groups.push({ id, name, code });
       currentGroupId = id;
       save();
       closeNewGroupModal();
@@ -166,7 +226,7 @@
         return;
       }
       container.innerHTML = groupItems.map(item => {
-        const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone', avatar: '?' };
+        const owner = users.find(u => u.id === item.ownerId) || { name: 'Someone' };
         const claimed = item.claimedBy === currentUserId;
         return `
           <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
@@ -260,7 +320,7 @@
       closeAddItemModal();
       renderAll();
       switchTab('my-list');
-      showToast('Gift added to your list');
+      showToast('Gift added');
     }
 
     function toggleClaim(id) {
@@ -290,9 +350,7 @@
       setTimeout(() => t.classList.add('opacity-0','pointer-events-none'), 2000);
     }
 
-    function openProfileModal() { showToast('Profile switcher coming soon'); }
-
-    renderAll();
+    init();
   </script>
 </body>
 </html>
