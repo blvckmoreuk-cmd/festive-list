@@ -595,10 +595,12 @@
     }
 
     function escapeHtml(str) {
-      return (str || '').replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
     }
 
-    // Run on boot - fixed
+    // Run on boot
     init();
   </script>
 </body>
